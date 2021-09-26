@@ -4,10 +4,26 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
+from rest_framework import permissions
 from rest_framework.authtoken.views import obtain_auth_token
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="documentation api",
+        default_version="v1",
+        description="space-ag-challenge",
+        terms_of_service="https://wwww.google.com/policies/terms/",
+        contact=openapi.Contact(email=""),
+        license=openapi.License(name=""),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
-    path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
+    path("home/", TemplateView.as_view(template_name="pages/home.html"), name="home"),
     path(
         "about/", TemplateView.as_view(template_name="pages/about.html"), name="about"
     ),
@@ -16,7 +32,10 @@ urlpatterns = [
     # User management
     path("users/", include("space_ag_challenge.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
-    path("v1/", include("worker.urls"))
+    path("v1/", include("worker.urls")),
+    path('api/swagger/', schema_view.with_ui('swagger', cache_timeout=0),
+           name='schema-swagger-ui'),
+    path("", schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     # Your stuff: custom urls includes go here
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
@@ -49,7 +68,8 @@ if settings.DEBUG:
         ),
         path("500/", default_views.server_error),
     ]
-    if "debug_toolbar" in settings.INSTALLED_APPS:
-        import debug_toolbar
 
-        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+    # if "debug_toolbar" in settings.INSTALLED_APPS:
+    #     import debug_toolbar
+    #
+    #     urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
